@@ -23,20 +23,20 @@ Conferência do enunciado Atividade_Pratica_M1_Parte2.docx realizada em 12/10/20
 | Preservação dos cadastros | Clientes e produtos mantêm cadastro, consulta, edição e exclusão com permissões | Testes de clientes, produtos e formulários; clientes com pedidos não são excluídos |
 | Consistência da auditoria | Transações abrangem alterações e auditoria; documentos usam controle de versão | Falha proposital na auditoria desfaz a alteração; cópia antiga não sobrescreve pedido |
 | README | Execução, replica set, migração de usuários antigos, requisitos, alterações e testes | README.md |
-| Testes | 30 testes executados, sem falhas ou erros, nenhum teste pulado | Maven package com mongodb.integration=true; BUILD SUCCESS |
+| Testes | 36 testes executados, sem falhas ou erros, nenhum teste pulado | Maven package com mongodb.integration=true; BUILD SUCCESS |
 
 ## Opções originais do menu
 
 O submenu Configurações foi restaurado com Funcionários, Entregadores, Horário de Funcionamento, Produtos e Usuários. As opções permanecem visíveis; restrições de perfil aparecem identificadas. O perfil da sessão aparece no menu.
 
-No código original, Funcionários, Entregadores e Horário de Funcionamento eram somente links: não existiam controllers, serviços ou telas de cadastro. Seus atalhos agora abrem uma explicação de indisponibilidade em vez de uma rota inexistente. Esses cadastros não são exigidos pelo Word e não são contabilizados como funcionalidades implementadas.
+Funcionários e Entregadores possuem cadastro, consulta, edição e inativação. O horário de funcionamento pode ser configurado por dia, inclusive com fechamento após a meia-noite. ADMIN e GERENTE editam esses cadastros, e ATENDENTE consulta. A tela Entregas permite ao GERENTE atribuir um entregador ativo a um pedido pronto, registrar a saída e finalizar a entrega. A atribuição é auditada e preserva o nome do entregador no pedido. Os testes verificam persistência, validações, permissões, CSRF e reversão do despacho quando a auditoria falha.
 
 Produtos, Usuários, Clientes e Pedidos continuam com suas operações implementadas, conforme as permissões do enunciado.
 
 ## Entrega e limites da conferência
 
 - O código e o README estão preparados para o repositório individual. A publicação deve ser verificada no GitHub.
-- O vídeo individual ainda precisa ser gravado diretamente da tela pelo aluno. O roteiro está no README. Nenhum vídeo foi criado nesta conferência; a sessão não dispõe de navegador ou aplicativo conectado para gravação.
+- O vídeo individual ainda precisa ser gravado diretamente da tela pelo aluno. Nenhum vídeo foi criado nesta conferência; a sessão não dispõe de navegador ou aplicativo conectado para gravação.
 - A inspeção visual em navegador permanece pendente. As páginas Thymeleaf e os formulários foram verificados pelos testes da aplicação.
 - A regra de similaridade entre trabalhos depende de comparação com os outros projetos e da avaliação do professor; não é possível certificar esse percentual apenas com este repositório.
 - O banco MongoDB precisa estar em replica set para as transações. Os testes usam um processo próprio e não alteram o banco habitual.

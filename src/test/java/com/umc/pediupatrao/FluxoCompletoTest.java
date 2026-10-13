@@ -78,7 +78,7 @@ class FluxoCompletoTest {
     @BeforeEach
     void preparar() {
         assertEquals("pizzaria_teste", banco.getDb().getName());
-        for (String colecao : List.of("pedidos", "clientes", "produtos", "auditoria", "usuarios")) {
+        for (String colecao : List.of("pedidos", "clientes", "produtos", "auditoria", "usuarios", "funcionarios", "entregadores", "horariosAtendimento")) {
             banco.getCollection(colecao).deleteMany(new Document());
         }
         for (String perfil : List.of("ADMIN", "GERENTE", "ATENDENTE")) {
@@ -265,9 +265,9 @@ class FluxoCompletoTest {
         }
         mvc.perform(como(get("/usuarios"), "atendente")).andExpect(status().isForbidden());
         mvc.perform(como(get("/api/auditoria"), "atendente")).andExpect(status().isForbidden());
-        mvc.perform(como(post("/horarios").with(csrf()), "gerente")).andExpect(status().isForbidden());
+        mvc.perform(como(post("/horarios/salvar").with(csrf()), "atendente")).andExpect(status().isForbidden());
         mvc.perform(como(get("/entregadores"), "admin")).andExpect(content().string(
-                org.hamcrest.Matchers.containsString("ainda não está disponível")));
+                org.hamcrest.Matchers.containsString("Novo entregador")));
     }
 
     @Test
@@ -343,6 +343,150 @@ class FluxoCompletoTest {
         assertEquals(2, banco.getCollection("auditoria").countDocuments());
     }
 
+    @Test
+    void cadastraEditaEInativaEquipeSemCriarContasDeAcesso() throws Exception {
+        for (String tipo : List.of("funcionarios", "entregadores")) {
+            String extra = tipo.equals("funcionarios") ? "cargo" : "veiculo";
+            mvc.perform(como(get("/" + tipo + "/novo"), "admin")).andExpect(status().isOk());
+            mvc.perform(como(post("/" + tipo + "/salvar").with(csrf())
+                    .param("nome", "Ana Teste").param("telefone", "(11) 99999-1234")
+                    .param(extra, "Equipe").param("ativo", "true"), "admin"))
+                    .andExpect(redirectedUrl("/" + tipo));
+            Document salvo = banco.getCollection(tipo).find().first();
+            assertEquals("11999991234", salvo.getString("telefone"));
+            String id = salvo.getObjectId("_id").toHexString();
+            mvc.perform(como(get("/" + tipo + "/editar/" + id), "gerente"))
+                    .andExpect(status().isOk()).andExpect(content().string(org.hamcrest.Matchers.containsString("Ana Teste")));
+            mvc.perform(como(post("/" + tipo + "/salvar").with(csrf()).param("id", id)
+                    .param("nome", "Ana Atualizada").param("telefone", "11999991234")
+                    .param(extra, "Novo").param("ativo", "false"), "gerente"))
+                    .andExpect(redirectedUrl("/" + tipo));
+            salvo = banco.getCollection(tipo).find().first();
+            assertEquals("Ana Atualizada", salvo.getString("nome"));
+            assertFalse(salvo.getBoolean("ativo"));
+            assertEquals(1, banco.getCollection(tipo).countDocuments());
+            mvc.perform(como(get("/" + tipo), "atendente")).andExpect(status().isOk())
+                    .andExpect(content().string(org.hamcrest.Matchers.containsString("Inativo")));
+        }
+        assertEquals(3, banco.getCollection("usuarios").countDocuments());
+    }
+
+    @Test
+    void equipeRejeitaDadosInvalidosEMantemFormularioPreenchido() throws Exception {
+        for (String tipo : List.of("funcionarios", "entregadores")) {
+            mvc.perform(como(post("/" + tipo + "/salvar").with(csrf()).param("nome", "Ana")
+                    .param("telefone", "123").param("cargo", "Caixa").param("veiculo", "Moto"), "gerente"))
+                    .andExpect(status().isOk()).andExpect(content().string(org.hamcrest.Matchers.containsString("Informe um telefone")));
+            assertEquals(0, banco.getCollection(tipo).countDocuments());
+        }
+    }
+
+    @Test
+    void novasConfiguracoesExigemPerfilECsrf() throws Exception {
+        for (String tipo : List.of("funcionarios", "entregadores", "horarios")) {
+            mvc.perform(como(post("/" + tipo + "/salvar").with(csrf()), "atendente")).andExpect(status().isForbidden());
+            mvc.perform(como(post("/" + tipo + "/salvar"), "admin")).andExpect(status().isForbidden());
+        }
+        for (String tipo : List.of("funcionarios", "entregadores")) {
+            mvc.perform(como(get("/" + tipo + "/novo"), "atendente")).andExpect(status().isForbidden());
+        }
+        for (String perfil : List.of("admin", "atendente")) {
+            mvc.perform(como(post("/entregas/qualquer/despachar").with(csrf()).param("entregadorId", "qualquer"), perfil))
+                    .andExpect(status().isForbidden());
+            mvc.perform(como(post("/entregas/qualquer/finalizar").with(csrf()), perfil)).andExpect(status().isForbidden());
+        }
+    }
+
+    @Test
+    void salvaHorarioNoturnoEDiaFechadoSemDuplicarSemana() throws Exception {
+        mvc.perform(como(get("/horarios"), "admin")).andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Segunda-feira")));
+        mvc.perform(como(post("/horarios/salvar").with(csrf()).param("id", "MONDAY")
+                .param("fechado", "false").param("abertura", "18:00").param("fechamento", "02:00"), "gerente"))
+                .andExpect(redirectedUrl("/horarios")).andExpect(flash().attributeExists("sucesso"));
+        assertEquals("02:00", banco.getCollection("horariosAtendimento").find().first().getString("fechamento"));
+        mvc.perform(como(get("/horarios"), "atendente")).andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Fechamento no dia seguinte.")));
+        for (String abertura : List.of("", "25:00", "18:00")) {
+            mvc.perform(como(post("/horarios/salvar").with(csrf()).param("id", "MONDAY")
+                    .param("fechado", "false").param("abertura", abertura).param("fechamento", "18:00"), "admin"))
+                    .andExpect(flash().attributeExists("erro"));
+        }
+        mvc.perform(como(post("/horarios/salvar").with(csrf()).param("id", "INVALIDO").param("fechado", "true"), "admin"))
+                .andExpect(flash().attributeExists("erro"));
+        assertEquals("02:00", banco.getCollection("horariosAtendimento").find().first().getString("fechamento"));
+        mvc.perform(como(post("/horarios/salvar").with(csrf()).param("id", "MONDAY").param("fechado", "true"), "admin"))
+                .andExpect(flash().attributeExists("sucesso"));
+        assertEquals(1, banco.getCollection("horariosAtendimento").countDocuments());
+        Document fechado = banco.getCollection("horariosAtendimento").find().first();
+        assertTrue(fechado.getBoolean("fechado"));
+        assertNull(fechado.get("abertura"));
+    }
+
+    @Test
+    void despachaComEntregadorAtivoEFinalizaPreservandoHistorico() throws Exception {
+        String pedido = criarPedido();
+        mvc.perform(como(post("/entregadores/salvar").with(csrf()).param("nome", "João Entregador")
+                .param("telefone", "11999991234").param("veiculo", "Moto").param("ativo", "false"), "gerente"))
+                .andExpect(redirectedUrl("/entregadores"));
+        Document entregador = banco.getCollection("entregadores").find().first();
+        String id = entregador.getObjectId("_id").toHexString();
+        mvc.perform(como(post("/entregas/" + pedido + "/despachar").with(csrf()).param("entregadorId", id), "gerente"))
+                .andExpect(status().isBadRequest());
+        for (String estado : List.of("EM_PREPARACAO", "PRONTO")) {
+            mvc.perform(como(put("/api/pedidos/" + pedido + "/status").with(csrf()).param("status", estado), "gerente"))
+                    .andExpect(status().isOk());
+        }
+        mvc.perform(como(get("/entregas"), "gerente")).andExpect(status().isOk());
+        mvc.perform(como(post("/entregas/" + pedido + "/despachar").with(csrf()).param("entregadorId", id), "gerente"))
+                .andExpect(status().isBadRequest());
+        banco.getCollection("entregadores").updateOne(new Document("_id", entregador.get("_id")),
+                new Document("$set", new Document("ativo", true)));
+        mvc.perform(como(get("/entregas"), "gerente")).andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("João Entregador")));
+        mvc.perform(como(post("/entregas/" + pedido + "/despachar").with(csrf()).param("entregadorId", id), "gerente"))
+                .andExpect(redirectedUrl("/entregas"));
+        Document salvo = banco.getCollection("pedidos").find().first();
+        assertEquals("SAIU_PARA_ENTREGA", salvo.getString("status"));
+        assertEquals(id, salvo.getString("entregadorId"));
+        assertEquals("João Entregador", salvo.getString("entregadorNome"));
+        assertNotNull(salvo.getDate("dataHoraSaida"));
+        assertEquals(1, banco.getCollection("auditoria").countDocuments(new Document("operacao", "ATRIBUICAO_ENTREGADOR")));
+        mvc.perform(como(post("/entregas/" + pedido + "/despachar").with(csrf()).param("entregadorId", id), "gerente"))
+                .andExpect(status().isBadRequest());
+        mvc.perform(como(post("/entregas/" + pedido + "/finalizar").with(csrf()), "gerente"))
+                .andExpect(redirectedUrl("/entregas"));
+        mvc.perform(como(post("/entregas/" + pedido + "/finalizar").with(csrf()), "gerente"))
+                .andExpect(status().isBadRequest());
+        banco.getCollection("entregadores").updateOne(new Document("_id", entregador.get("_id")),
+                new Document("$set", new Document("nome", "Nome alterado")));
+        for (String perfil : List.of("admin", "gerente", "atendente")) {
+            mvc.perform(como(get("/entregas"), perfil)).andExpect(status().isOk())
+                    .andExpect(content().string(org.hamcrest.Matchers.containsString("João Entregador")));
+        }
+        assertEquals("FINALIZADO", banco.getCollection("pedidos").find().first().getString("status"));
+    }
+
+    @Test
+    void falhaNaAuditoriaDesfazDespachoEAtribuicao() throws Exception {
+        String pedido = criarPedido();
+        for (String estado : List.of("EM_PREPARACAO", "PRONTO")) {
+            mvc.perform(como(put("/api/pedidos/" + pedido + "/status").with(csrf()).param("status", estado), "gerente"))
+                    .andExpect(status().isOk());
+        }
+        banco.getCollection("entregadores").insertOne(new Document("_id", "entregador-teste")
+                .append("nome", "Teste").append("ativo", true));
+        banco.getDb().runCommand(new Document("collMod", "auditoria").append("validator", new Document("operacao", "BLOQUEADO")));
+        try {
+            mvc.perform(como(post("/entregas/" + pedido + "/despachar").with(csrf())
+                    .param("entregadorId", "entregador-teste"), "gerente")).andExpect(status().isServiceUnavailable());
+            Document salvo = banco.getCollection("pedidos").find().first();
+            assertEquals("PRONTO", salvo.getString("status"));
+            assertNull(salvo.get("entregadorId"));
+        } finally {
+            banco.getDb().runCommand(new Document("collMod", "auditoria").append("validator", new Document()));
+        }
+    }
     private MockHttpServletRequestBuilder como(MockHttpServletRequestBuilder request, String usuario) {
         return request.with(user(detalhes.loadUserByUsername(usuario)));
     }

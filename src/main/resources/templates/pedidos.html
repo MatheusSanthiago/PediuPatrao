@@ -3,7 +3,7 @@
 <body>
 <div th:fragment="content">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Pedidos</h2>
+        <h2>Pedidos</h2><a th:href="@{/entregas}" class="btn btn-outline-primary">Entregas</a>
         <a th:if="${gerente or atendente}" th:href="@{/pedidos/novo}" class="btn btn-primary">Novo pedido</a>
     </div>
     <p class="text-muted">Recebido → Em preparação → Pronto → Saiu para entrega ou Retirado → Finalizado</p>
@@ -39,6 +39,7 @@
                 — responsável: <span th:text="${pedido.responsavelRegistro ?: 'Não registrado'}"></span></p>
             <p>Saída: <span th:text="${pedido.dataHoraSaida != null ? #temporals.format(pedido.dataHoraSaida.atZone(T(java.time.ZoneId).of('America/Sao_Paulo')), 'dd/MM/yyyy HH:mm:ss') : 'Ainda não registrada'}"></span>
                 — responsável: <span th:text="${pedido.responsavelSaida ?: '—'}"></span></p>
+            <p th:if="${pedido.entregadorNome}">Entregador: <span th:text="${pedido.entregadorNome}"></span></p>
             <p th:if="${pedido.justificativaCancelamento}">Justificativa: <span th:text="${pedido.justificativaCancelamento}"></span></p>
             <div th:if="${gerente}">
                 <form th:if="${pedido.status != null and #lists.contains({'RECEBIDO','EM_PREPARACAO','PRONTO','SAIU_PARA_ENTREGA','RETIRADO'}, pedido.status)}" th:action="@{/pedidos/{id}/status(id=${pedido.id})}" method="post" class="d-flex gap-2 mb-3">

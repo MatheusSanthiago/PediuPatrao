@@ -9,6 +9,13 @@ import org.springframework.data.annotation.Version;
 import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "pedidos")
 public class Pedido {
+    private String entregadorId;
+    private String entregadorNome;
+    public String getEntregadorId() { return entregadorId; }
+    public void setEntregadorId(String entregadorId) { this.entregadorId = entregadorId; }
+    public String getEntregadorNome() { return entregadorNome; }
+    public void setEntregadorNome(String entregadorNome) { this.entregadorNome = entregadorNome; }
+
     @Id
     private String id;
     @Version

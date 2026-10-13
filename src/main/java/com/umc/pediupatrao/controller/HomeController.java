@@ -199,30 +199,6 @@ public class HomeController {
         return "layout";
     }
 
-    @GetMapping("/funcionarios")
-    public String funcionarios(Model model) {
-        model.addAttribute("tituloOpcao", "Funcionários");
-        model.addAttribute("descricaoOpcao", "O cadastro de funcionários ainda não está disponível. Contas de acesso e perfis são administrados em Usuários pelo ADMIN.");
-        model.addAttribute("content", "opcao-indisponivel :: content");
-        return "layout";
-    }
-
-    @GetMapping("/entregadores")
-    public String entregadores(Model model) {
-        model.addAttribute("tituloOpcao", "Entregadores");
-        model.addAttribute("descricaoOpcao", "O cadastro de entregadores ainda não está disponível. O acompanhamento da saída para entrega está disponível em Pedidos.");
-        model.addAttribute("content", "opcao-indisponivel :: content");
-        return "layout";
-    }
-
-    @GetMapping("/horarios")
-    public String horarios(Model model) {
-        model.addAttribute("tituloOpcao", "Horário de Funcionamento");
-        model.addAttribute("descricaoOpcao", "A configuração do horário de funcionamento ainda não está disponível.");
-        model.addAttribute("content", "opcao-indisponivel :: content");
-        return "layout";
-    }
-
     @GetMapping("/teste")
     public String teste() {
         return "teste";

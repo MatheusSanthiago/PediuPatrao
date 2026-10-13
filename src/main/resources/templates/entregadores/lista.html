@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<body>
+<div th:fragment="content">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <h2>Entregadores</h2>
+        <a th:if="${admin or gerente}" th:href="@{/entregadores/novo}" class="btn btn-primary">Novo entregador</a>
+    </div>
+    <p>Cadastre quem realiza as entregas. Informe o veículo, por exemplo: moto, bicicleta ou carro.</p>
+    <p class="text-muted">Use a opção Inativo ao editar para manter os dados de quem deixou a equipe.</p>
+    <div th:if="${sucesso}" th:text="${sucesso}" class="alert alert-success"></div>
+    <p th:if="${#lists.isEmpty(entregadores)}" class="alert alert-info">Nenhum entregador cadastrado.</p>
+    <div class="table-responsive" th:unless="${#lists.isEmpty(entregadores)}">
+        <table class="table table-striped align-middle">
+            <thead><tr><th>Nome</th><th>Telefone</th><th>Veículo</th><th>Situação</th><th th:if="${admin or gerente}">Ações</th></tr></thead>
+            <tbody>
+            <tr th:each="pessoa : ${entregadores}">
+                <td th:text="${pessoa.nome}"></td>
+                <td th:text="${pessoa.telefone}"></td>
+                <td th:text="${pessoa.veiculo}"></td>
+                <td><span class="badge" th:classappend="${pessoa.ativo ? 'bg-success' : 'bg-secondary'}" th:text="${pessoa.ativo ? 'Ativo' : 'Inativo'}"></span></td>
+                <td th:if="${admin or gerente}"><a class="btn btn-sm btn-outline-primary" th:href="@{/entregadores/editar/{id}(id=${pessoa.id})}">Editar</a></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <a th:href="@{/entregas}" class="btn btn-outline-primary">Acompanhar entregas</a>
+</div>
+</body>
+</html>

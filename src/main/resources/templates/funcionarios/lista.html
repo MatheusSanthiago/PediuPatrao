@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<body>
+<div th:fragment="content">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <h2>Funcionários</h2>
+        <a th:if="${admin or gerente}" th:href="@{/funcionarios/novo}" class="btn btn-primary">Novo funcionário</a>
+    </div>
+    <p>O cadastro da equipe não cria uma conta de acesso. As contas são administradas em Usuários.</p>
+    <p class="text-muted">Use a opção Inativo ao editar para manter os dados de quem deixou a equipe.</p>
+    <div th:if="${sucesso}" th:text="${sucesso}" class="alert alert-success"></div>
+    <p th:if="${#lists.isEmpty(funcionarios)}" class="alert alert-info">Nenhum funcionário cadastrado.</p>
+    <div class="table-responsive" th:unless="${#lists.isEmpty(funcionarios)}">
+        <table class="table table-striped align-middle">
+            <thead><tr><th>Nome</th><th>Telefone</th><th>Cargo</th><th>Situação</th><th th:if="${admin or gerente}">Ações</th></tr></thead>
+            <tbody>
+            <tr th:each="pessoa : ${funcionarios}">
+                <td th:text="${pessoa.nome}"></td>
+                <td th:text="${pessoa.telefone}"></td>
+                <td th:text="${pessoa.cargo}"></td>
+                <td><span class="badge" th:classappend="${pessoa.ativo ? 'bg-success' : 'bg-secondary'}" th:text="${pessoa.ativo ? 'Ativo' : 'Inativo'}"></span></td>
+                <td th:if="${admin or gerente}"><a class="btn btn-sm btn-outline-primary" th:href="@{/funcionarios/editar/{id}(id=${pessoa.id})}">Editar</a></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    
+</div>
+</body>
+</html>

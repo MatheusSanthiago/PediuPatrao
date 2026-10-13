@@ -13,6 +13,7 @@
                 <span th:unless="${gerente or atendente}" class="nav-link opcao-restrita" title="Consulta disponível para GERENTE e ATENDENTE"><i class="bi bi-lock"></i> Clientes <small>restrito</small></span>
             </li>
             <li class="nav-item"><a class="nav-link" th:href="@{/pedidos}"><i class="bi bi-bag"></i> Pedidos</a></li>
+            <li class="nav-item"><a class="nav-link" th:href="@{/entregas}"><i class="bi bi-truck"></i> Entregas</a></li>
             <li class="nav-item" th:classappend="${configuracoesAberta} ? 'open'">
                 <button type="button" class="nav-link w-100 text-start border-0 bg-transparent" aria-controls="submenu-configuracoes" th:attr="aria-expanded=${configuracoesAberta}" onclick="toggleSubmenu(event, this)">
                     <i class="bi bi-gear"></i> Configurações <span class="float-end" aria-hidden="true">&#9662;</span>

@@ -5,9 +5,10 @@
     <h2 class="mb-3">Configurações</h2>
     <p>Selecione uma opção. Os cadastros disponíveis dependem do seu perfil.</p>
     <div class="list-group">
-        <a th:href="@{/funcionarios}" class="list-group-item list-group-item-action"><i class="bi bi-person-walking"></i> Funcionários <span class="badge bg-secondary float-end">Cadastro indisponível</span></a>
-        <a th:href="@{/entregadores}" class="list-group-item list-group-item-action"><i class="bi bi-bicycle"></i> Entregadores <span class="badge bg-secondary float-end">Cadastro indisponível</span></a>
-        <a th:href="@{/horarios}" class="list-group-item list-group-item-action"><i class="bi bi-clock"></i> Horário de Funcionamento <span class="badge bg-secondary float-end">Configuração indisponível</span></a>
+        <a th:href="@{/entregas}" class="list-group-item list-group-item-action"><i class="bi bi-truck"></i> Acompanhar entregas</a>
+        <a th:href="@{/funcionarios}" class="list-group-item list-group-item-action"><i class="bi bi-person-walking"></i> Funcionários</a>
+        <a th:href="@{/entregadores}" class="list-group-item list-group-item-action"><i class="bi bi-bicycle"></i> Entregadores</a>
+        <a th:href="@{/horarios}" class="list-group-item list-group-item-action"><i class="bi bi-clock"></i> Horário de Funcionamento</a>
         <a th:href="@{/produtos}" class="list-group-item list-group-item-action"><i class="bi bi-boxes"></i> Produtos</a>
         <a th:if="${admin}" th:href="@{/usuarios}" class="list-group-item list-group-item-action"><i class="bi bi-people-fill"></i> Usuários e perfis</a>
         <span th:unless="${admin}" class="list-group-item text-muted"><i class="bi bi-lock"></i> Usuários e perfis — exclusivo do ADMIN</span>
