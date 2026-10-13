@@ -1,5 +1,5 @@
 // Alternar sidebar em telas pequenas
-document.querySelector('.toggle-btn').addEventListener('click', () => {
+document.querySelector('.toggle-btn')?.addEventListener('click', () => {
     document.getElementById('sidebar').classList.toggle('active');
 });
 
@@ -7,4 +7,5 @@ document.querySelector('.toggle-btn').addEventListener('click', () => {
 function toggleSubmenu(event, element) {
     event.preventDefault();
     element.parentElement.classList.toggle('open');
+    element.setAttribute('aria-expanded', element.parentElement.classList.contains('open'));
 }

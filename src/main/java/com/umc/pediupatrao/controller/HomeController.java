@@ -11,6 +11,9 @@ import com.umc.pediupatrao.service.PedidoService;
 import com.umc.pediupatrao.service.ProdutoService;
 import com.umc.pediupatrao.service.UsuarioService;
 import java.util.List;
+import java.math.BigDecimal;
+import com.umc.pediupatrao.entity.ItemPedido;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -155,7 +158,7 @@ public class HomeController {
     @PostMapping("/clientes/salvar")
     public String salvarCliente(@ModelAttribute Cliente cliente,
             RedirectAttributes redirectAttributes) {
-        clienteService.salvar(cliente);
+        clienteService.novoCliente(cliente);
         redirectAttributes.addFlashAttribute("sucesso", "Cliente criado com sucesso!");
         return "redirect:/clientes";
     }
@@ -196,6 +199,30 @@ public class HomeController {
         return "layout";
     }
 
+    @GetMapping("/funcionarios")
+    public String funcionarios(Model model) {
+        model.addAttribute("tituloOpcao", "Funcionários");
+        model.addAttribute("descricaoOpcao", "O cadastro de funcionários ainda não está disponível. Contas de acesso e perfis são administrados em Usuários pelo ADMIN.");
+        model.addAttribute("content", "opcao-indisponivel :: content");
+        return "layout";
+    }
+
+    @GetMapping("/entregadores")
+    public String entregadores(Model model) {
+        model.addAttribute("tituloOpcao", "Entregadores");
+        model.addAttribute("descricaoOpcao", "O cadastro de entregadores ainda não está disponível. O acompanhamento da saída para entrega está disponível em Pedidos.");
+        model.addAttribute("content", "opcao-indisponivel :: content");
+        return "layout";
+    }
+
+    @GetMapping("/horarios")
+    public String horarios(Model model) {
+        model.addAttribute("tituloOpcao", "Horário de Funcionamento");
+        model.addAttribute("descricaoOpcao", "A configuração do horário de funcionamento ainda não está disponível.");
+        model.addAttribute("content", "opcao-indisponivel :: content");
+        return "layout";
+    }
+
     @GetMapping("/teste")
     public String teste() {
         return "teste";
@@ -204,5 +231,88 @@ public class HomeController {
     @GetMapping("/admin")
     public String admin() {
         return "admin";
+    }
+
+    @GetMapping("/pedidos/novo")
+    public String novoPedido(Model model) {
+        model.addAttribute("clientes", clienteService.listarClientes());
+        model.addAttribute("produtos", produtoService.listarProdutos());
+        model.addAttribute("content", "pedido-form :: content");
+        return "layout";
+    }
+
+    @PostMapping("/pedidos/salvar")
+    public String salvarPedido(@RequestParam String clienteId, @RequestParam List<String> produtoId,
+                               @RequestParam List<Integer> quantidade, RedirectAttributes mensagens) {
+        if (produtoId.size() != quantidade.size()) {
+            throw new IllegalArgumentException("Confira os itens do pedido.");
+        }
+        Pedido pedido = new Pedido();
+        pedido.setClienteId(clienteId);
+        for (int i = 0; i < produtoId.size(); i++) {
+            ItemPedido item = new ItemPedido();
+            item.setProdutoId(produtoId.get(i));
+            item.setQuantidade(quantidade.get(i));
+            pedido.getItens().add(item);
+        }
+        pedidoService.criarPedido(pedido);
+        mensagens.addFlashAttribute("sucesso", "Pedido registrado!");
+        return "redirect:/pedidos";
+    }
+
+    @PostMapping("/pedidos/{id}/status")
+    public String mudarStatus(@PathVariable String id, @RequestParam String status, RedirectAttributes mensagens) {
+        pedidoService.atualizarStatus(id, status);
+        mensagens.addFlashAttribute("sucesso", "Status atualizado!");
+        return "redirect:/pedidos";
+    }
+
+    @PostMapping("/pedidos/{id}/desconto")
+    public String descontar(@PathVariable String id, @RequestParam BigDecimal percentual, RedirectAttributes mensagens) {
+        pedidoService.aplicarDesconto(id, percentual);
+        mensagens.addFlashAttribute("sucesso", "Desconto atualizado!");
+        return "redirect:/pedidos";
+    }
+
+    @PostMapping("/pedidos/{id}/cancelar")
+    public String cancelar(@PathVariable String id, @RequestParam String justificativa, RedirectAttributes mensagens) {
+        pedidoService.cancelarPedido(id, justificativa);
+        mensagens.addFlashAttribute("sucesso", "Pedido cancelado!");
+        return "redirect:/pedidos";
+    }
+
+    @PostMapping("/clientes/deletar/{id}")
+    public String excluirCliente(@PathVariable String id, RedirectAttributes mensagens) {
+        clienteService.excluir(id);
+        mensagens.addFlashAttribute("sucesso", "Cliente excluído!");
+        return "redirect:/clientes";
+    }
+
+    @GetMapping("/produtos/novo")
+    public String novoProduto(Model model) {
+        model.addAttribute("produto", new Produto());
+        model.addAttribute("content", "produtos/produto-form :: content");
+        return "layout";
+    }
+
+    @GetMapping("/produtos/editar/{id}")
+    public String editarProduto(@PathVariable String id, Model model) {
+        model.addAttribute("produto", produtoService.buscarPorId(id));
+        model.addAttribute("content", "produtos/produto-form :: content");
+        return "layout";
+    }
+
+    @PostMapping("/produtos/salvar")
+    public String salvarProduto(@ModelAttribute Produto produto, RedirectAttributes mensagens) {
+        produtoService.salvar(produto);
+        mensagens.addFlashAttribute("sucesso", "Produto salvo!");
+        return "redirect:/produtos";
+    }
+
+    @PostMapping("/produtos/deletar/{id}")
+    public String excluirProduto(@PathVariable String id, RedirectAttributes mensagens) {
+        produtoService.excluir(id);
+        mensagens.addFlashAttribute("sucesso", "Produto excluído!");
+        return "redirect:/produtos";
     }
 }

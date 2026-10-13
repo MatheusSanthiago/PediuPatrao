@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<body>
+<div th:fragment="content">
+    <h2>Novo pedido</h2>
+    <p>O preço de cada produto e o total serão calculados no servidor.</p>
+    <form th:action="@{/pedidos/salvar}" method="post" class="card card-body">
+        <label for="clienteId" class="form-label">Cliente</label>
+        <select name="clienteId" id="clienteId" class="form-select mb-4" required>
+            <option value="">Selecione</option>
+            <option th:each="cliente : ${clientes}" th:value="${cliente.id}" th:text="${cliente.nome}"></option>
+        </select>
+        <div id="itens-pedido">
+            <div class="row g-2 mb-3 item-pedido">
+                <div class="col-md-7">
+                    <label class="form-label">Produto
+                        <select name="produtoId" class="form-select" required>
+                            <option value="">Selecione</option>
+                            <option th:each="produto : ${produtos}" th:if="${produto.ativo == true}" th:value="${produto.id}" th:text="${produto.nome + ' — R$ ' + #numbers.formatDecimal(produto.preco, 1, 'POINT', 2, 'COMMA')}"></option>
+                        </select>
+                    </label>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Quantidade
+                        <input name="quantidade" type="number" min="1" max="100" value="1" class="form-control" required>
+                    </label>
+                </div>
+                <div class="col-md-2 align-self-end pb-2"><button type="button" class="btn btn-outline-danger remover-item">Remover</button></div>
+            </div>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <button type="button" class="btn btn-outline-secondary" id="adicionar-item">Adicionar item</button>
+            <button type="submit" class="btn btn-primary">Registrar pedido</button>
+            <a th:href="@{/pedidos}" class="btn btn-outline-secondary">Voltar</a>
+        </div>
+    </form>
+    <script th:src="@{/js/pedidos.js}" defer></script>
+</div>
+</body>
+</html>
