@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<body>
+<div th:fragment="content">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <h2>Entregas</h2>
+        <a th:href="@{/entregadores}" class="btn btn-outline-primary">Entregadores</a>
+    </div>
+    <p>Pedidos prontos para sair, entregas em andamento e entregas finalizadas com entregador registrado.</p>
+    <div th:if="${sucesso}" th:text="${sucesso}" class="alert alert-success"></div>
+    <p th:if="${#lists.isEmpty(pedidos)}" class="alert alert-info">Nenhuma entrega para acompanhar. Os pedidos aparecem aqui quando ficam prontos.</p>
+    <article class="card mb-3" th:each="pedido : ${pedidos}">
+        <div class="card-header d-flex justify-content-between flex-wrap gap-2">
+            <strong th:text="${'Pedido ' + pedido.id}"></strong>
+            <span class="badge bg-secondary" th:text="${pedido.status}"></span>
+        </div>
+        <div class="card-body">
+            <p>Cliente: <span th:text="${pedido.clienteId}"></span></p>
+            <ul><li th:each="item : ${pedido.itens}" th:text="${item.quantidade + ' × ' + item.nome}"></li></ul>
+            <p>Total: <strong th:text="${'R$ ' + #numbers.formatDecimal(pedido.valorTotal, 1, 'POINT', 2, 'COMMA')}"></strong></p>
+            <p>Entregador: <span th:text="${pedido.entregadorNome ?: 'Não atribuído'}"></span></p>
+            <p th:if="${pedido.dataHoraSaida != null}">Saída: <span th:text="${#temporals.format(pedido.dataHoraSaida.atZone(T(java.time.ZoneId).of('America/Sao_Paulo')), 'dd/MM/yyyy HH:mm')}"></span></p>
+            <div th:if="${gerente and pedido.status == 'PRONTO'}">
+                <p th:if="${#lists.isEmpty(entregadores)}" class="alert alert-warning">Cadastre ou ative um entregador para despachar este pedido.</p>
+                <form th:unless="${#lists.isEmpty(entregadores)}" th:action="@{/entregas/{id}/despachar(id=${pedido.id})}" method="post" class="d-flex gap-2">
+                    <label class="visually-hidden" th:for="${'entregador-' + pedido.id}">Entregador</label>
+                    <select name="entregadorId" th:id="${'entregador-' + pedido.id}" class="form-select" required>
+                        <option value="">Selecione o entregador</option>
+                        <option th:each="entregador : ${entregadores}" th:value="${entregador.id}" th:text="${entregador.nome + ' — ' + entregador.veiculo}"></option>
+                    </select>
+                    <button type="submit" class="btn btn-primary">Sair para entrega</button>
+                </form>
+            </div>
+            <form th:if="${gerente and pedido.status == 'SAIU_PARA_ENTREGA'}" th:action="@{/entregas/{id}/finalizar(id=${pedido.id})}" method="post">
+                <button type="submit" class="btn btn-success">Finalizar entrega</button>
+            </form>
+        </div>
+    </article>
+</div>
+</body>
+</html>

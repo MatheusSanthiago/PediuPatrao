@@ -1,6 +1,7 @@
 package com.umc.pediupatrao.entity;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Version;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "clientes")
@@ -8,6 +9,11 @@ public class Cliente {
 
     @Id
     private String id;
+    @Version
+    private Long versao;
+
+    public Long getVersao() { return versao; }
+    public void setVersao(Long versao) { this.versao = versao; }
     private String nome;
     private String telefone;
 

@@ -63,3 +63,47 @@ body {
         cursor: pointer;
     }
 }
+
+        .avatar-circle {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background-color: #0d6efd22;
+            color: #0d6efd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+
+
+        /* Estilos adicionais para centralizar o card de login */
+        .login-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f8f9fa;
+        }
+        .login-card {
+            max-width: 400px;
+            width: 100%;
+            padding: 2rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            background-color: #ffffff;
+        }
+        .logo {
+            width: 100px;
+            height: auto;
+            margin-bottom: 1rem;
+        }
+
+.formulario-medio { max-width: 600px; }
+.item-pedido label { display: block; }
+
+#sidebar button.nav-link { color: white; }
+#sidebar .opcao-restrita { color: #ced4da; cursor: not-allowed; }

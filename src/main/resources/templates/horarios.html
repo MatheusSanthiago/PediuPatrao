@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<body>
+<div th:fragment="content">
+    <h2 class="mb-3">Horário de Funcionamento</h2>
+    <p>Configure cada dia e clique em Salvar dia. Os dias ainda não configurados aparecem como fechados.</p>
+    <p class="text-muted">Se o fechamento for antes da abertura, o expediente termina no dia seguinte. Os horários são informativos e não bloqueiam o registro de pedidos.</p>
+    <div th:if="${sucesso}" th:text="${sucesso}" class="alert alert-success"></div>
+    <div th:if="${erro}" th:text="${erro}" class="alert alert-danger" role="alert"></div>
+    <div class="card mb-3" th:each="horario : ${horarios}">
+        <div class="card-body">
+            <h3 class="h5" th:text="${horario.nomeDia}"></h3>
+            <form th:if="${admin or gerente}" th:action="@{/horarios/salvar}" method="post" class="row align-items-end g-3">
+                <input type="hidden" name="id" th:value="${horario.id}">
+                <div class="col-md-3">
+                    <label class="form-label" th:for="${'situacao-' + horario.id}">Atendimento</label>
+                    <select name="fechado" th:id="${'situacao-' + horario.id}" class="form-select">
+                        <option value="false" th:selected="${!horario.fechado}">Aberto</option>
+                        <option value="true" th:selected="${horario.fechado}">Fechado</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label" th:for="${'abertura-' + horario.id}">Abertura</label>
+                    <input type="time" name="abertura" th:id="${'abertura-' + horario.id}" th:value="${horario.abertura}" class="form-control">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label" th:for="${'fechamento-' + horario.id}">Fechamento</label>
+                    <input type="time" name="fechamento" th:id="${'fechamento-' + horario.id}" th:value="${horario.fechamento}" class="form-control">
+                </div>
+                <div class="col-md-3"><button type="submit" class="btn btn-primary">Salvar dia</button></div>
+            </form>
+            <p th:unless="${admin or gerente}" th:text="${horario.fechado ? 'Fechado' : horario.abertura + ' às ' + horario.fechamento}"></p>
+            <small th:if="${horario.fechaNoDiaSeguinte}" class="text-muted">Fechamento no dia seguinte.</small>
+        </div>
+    </div>
+</div>
+</body>
+</html>

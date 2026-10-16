@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<body>
+<div th:fragment="content">
+    <h2>Auditoria</h2>
+    <p class="text-muted">Histórico de pedidos e clientes. Horários de Brasília. Consulta restrita a ADMIN e GERENTE.</p>
+    <form th:action="@{/auditoria}" method="get" class="row g-2 mb-4">
+        <div class="col-md-3"><label for="entidade" class="form-label">Entidade</label>
+            <select name="entidade" id="entidade" class="form-select">
+                <option value="" th:selected="${entidade == null or entidade == ''}">Todas</option>
+                <option value="PEDIDO" th:selected="${entidade == 'PEDIDO'}">Pedido</option>
+                <option value="CLIENTE" th:selected="${entidade == 'CLIENTE'}">Cliente</option>
+            </select>
+        </div>
+        <div class="col-md-6"><label for="entidadeId" class="form-label">Identificador (opcional)</label>
+            <input name="entidadeId" id="entidadeId" class="form-control" th:value="${entidadeId}">
+        </div>
+        <div class="col-md-3 align-self-end"><button class="btn btn-primary" type="submit">Consultar</button> <a th:href="@{/auditoria}" class="btn btn-outline-secondary">Limpar</a></div>
+    </form>
+    <p th:if="${registros.empty}" class="alert alert-info">Nenhum registro encontrado.</p>
+    <article th:each="registro : ${registros.content}" class="card mb-3">
+        <div class="card-header"><strong th:text="${registro.operacao}"></strong></div>
+        <div class="card-body">
+            <p>Usuário: <strong th:text="${registro.usuario}"></strong> — <span th:text="${registro.perfil}"></span>
+                — <span th:text="${#temporals.format(registro.dataHora.atZone(T(java.time.ZoneId).of('America/Sao_Paulo')), 'dd/MM/yyyy HH:mm:ss')}"></span></p>
+            <p><span th:text="${registro.entidade}"></span> ID: <span th:text="${registro.entidadeId}"></span></p>
+            <p th:if="${registro.justificativa}">Justificativa: <span th:text="${registro.justificativa}"></span></p>
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead><tr><th>Campo</th><th>Valor anterior</th><th>Valor novo</th></tr></thead>
+                    <tbody><tr th:each="alteracao : ${registro.alteracoes}">
+                        <td th:text="${alteracao.campo}"></td><td th:text="${alteracao.valorAnterior ?: '—'}"></td><td th:text="${alteracao.valorNovo ?: '—'}"></td>
+                    </tr></tbody>
+                </table>
+            </div>
+            <p th:if="${#lists.isEmpty(registro.alteracoes)}" class="text-muted">Operação sem mudança de valores.</p>
+        </div>
+    </article>
+    <nav aria-label="Páginas da auditoria" class="d-flex gap-3 align-items-center">
+        <a th:if="${registros.hasPrevious()}" th:href="@{/auditoria(pagina=${registros.number - 1},entidade=${entidade},entidadeId=${entidadeId})}" class="btn btn-outline-primary">Anterior</a>
+        <span th:text="${'Página ' + (registros.number + 1)}"></span>
+        <a th:if="${registros.hasNext()}" th:href="@{/auditoria(pagina=${registros.number + 1},entidade=${entidade},entidadeId=${entidadeId})}" class="btn btn-outline-primary">Próxima</a>
+    </nav>
+</div>
+</body>
+</html>
