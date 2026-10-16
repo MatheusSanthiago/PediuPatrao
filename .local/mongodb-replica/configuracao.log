@@ -1,0 +1,22 @@
+﻿usuarios: 1
+clientes: 6
+produtos: 8
+pedidos: 10
+auditoria: 15
+funcionarios: 2
+entregadores: 2
+horariosAtendimento: 6
+SLF4J(W): No SLF4J providers were found.
+SLF4J(W): Defaulting to no-operation (NOP) logger implementation
+SLF4J(W): See https://www.slf4j.org/codes.html#noProviders for further details.
+
+Replica set rs0 PRIMARY em localhost:27017.
+SLF4J(W): No SLF4J providers were found.
+SLF4J(W): Defaulting to no-operation (NOP) logger implementation
+SLF4J(W): See https://www.slf4j.org/codes.html#noProviders for further details.
+
+Todos os registros e credenciais preservados: comparaþÒo SHA-256 aprovada.
+SLF4J(W): No SLF4J providers were found.
+SLF4J(W): Defaulting to no-operation (NOP) logger implementation
+SLF4J(W): See https://www.slf4j.org/codes.html#noProviders for further details.
+

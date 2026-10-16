@@ -1,0 +1,6 @@
+﻿{
+    "backup":  "C:\\GitHub\\PediuPatrao\\.local\\mongodb-replica\\backup-20261012-225321",
+    "sucesso":  true,
+    "replicaSet":  "rs0",
+    "porta":  27017
+}
