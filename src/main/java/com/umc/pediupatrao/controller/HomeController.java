@@ -205,8 +205,9 @@ public class HomeController {
     }
 
     @GetMapping("/admin")
-    public String admin() {
-        return "admin";
+    public String admin(Model model) {
+        model.addAttribute("content", "admin :: content");
+        return "layout";
     }
 
     @GetMapping("/pedidos/novo")

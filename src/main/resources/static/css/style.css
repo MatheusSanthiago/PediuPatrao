@@ -107,3 +107,7 @@ body {
 
 #sidebar button.nav-link { color: white; }
 #sidebar .opcao-restrita { color: #ced4da; cursor: not-allowed; }
+
+#dashboard { min-width: 0; }
+.dashboard-grafico { position: relative; height: 280px; }
+.dashboard-tabela { max-height: 360px; overflow: auto; }
