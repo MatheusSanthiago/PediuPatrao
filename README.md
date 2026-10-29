@@ -117,6 +117,20 @@ O menu Configurações permite cadastrar funcionários, entregadores, produtos e
 
 Os dias ainda não configurados aparecem como fechados. Os cadastros de funcionários, entregadores e horários também funcionam com MongoDB sem replica set; alterações em pedidos e entregas precisam da configuração descrita em Como executar.
 
+## Dashboard administrativo
+
+ADMIN e GERENTE podem abrir **Dashboard** no menu ou acessar `/admin`. O painel mostra total vendido, pedidos finalizados, ticket médio, itens vendidos, gráficos diários, situação dos pedidos e os cinco produtos mais vendidos.
+
+Escolha a data inicial e final e clique em **Atualizar painel**. O período usa a data de entrada dos pedidos, no horário de Brasília, e aceita até 366 dias. Os indicadores de venda consideram apenas pedidos finalizados com dados completos e valores após os descontos. A situação dos pedidos inclui também os demais status.
+
+Os dados são consultados em `/api/dashboard/resumo`, `/api/dashboard/vendas`, `/api/dashboard/status` e `/api/dashboard/produtos`. Pedidos antigos sem data ou sem informações suficientes são identificados por avisos. O painel não altera os pedidos.
+
+A [documentação da atividade em Word](docs/DASHBOARD.docx) contém os requisitos, exemplos da API, regras dos cálculos e resultados dos testes. As [evidências dos testes](docs/evidencias/testes-dashboard.txt) também estão no repositório.
+
+## Vídeo de apresentação
+
+O [vídeo da atividade](docs/ATIVIDADE.mp4) tem 3 minutos e mostra o dashboard funcionando, os filtros, os perfis de acesso e as principais decisões do projeto.
+
 ## Testes
 
 Para executar os testes das regras dos pedidos:
@@ -133,3 +147,13 @@ $env:MONGOD_PATH = 'C:\Program Files\MongoDB\Server\9.0\bin\mongod.exe'
 ```
 
 Ajuste o caminho de acordo com a sua instalação. Esses testes não alteram os dados do banco usado normalmente pelo projeto.
+
+Os testes do dashboard são executados junto com os anteriores. Em instalações com Java 25, a versão atual do Mockito precisa da opção `"-Dnet.bytebuddy.experimental=true"` no comando Maven. Com Java 21 essa opção não é necessária.
+
+Para testar também o JavaScript, com Node.js instalado:
+
+```powershell
+node --test src/test/js/dashboard.test.cjs
+```
+
+Esses testes usam respostas de demonstração salvas em `docs/evidencias`, sem acessar o banco habitual.

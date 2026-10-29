@@ -25,7 +25,9 @@ public class SecurityConfig {
         http.authorizeHttpRequests(auth -> auth
                 .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                 .requestMatchers("/login", "/css/**", "/dist/**", "/plugins/**", "/js/**", "/images/**").permitAll()
-                .requestMatchers("/usuarios", "/usuarios/**", "/api/usuarios", "/api/usuarios/**", "/admin").hasRole("ADMIN")
+                .requestMatchers("/usuarios", "/usuarios/**", "/api/usuarios", "/api/usuarios/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/admin", "/api/dashboard/**").hasAnyRole("ADMIN", "GERENTE")
+                .requestMatchers("/api/dashboard/**").denyAll()
                 .requestMatchers(HttpMethod.GET, "/auditoria", "/api/auditoria").hasAnyRole("ADMIN", "GERENTE")
                 .requestMatchers("/api/auditoria/**", "/auditoria/**").denyAll()
                 .requestMatchers(HttpMethod.GET, "/clientes", "/api/clientes", "/api/clientes/*").hasAnyRole("GERENTE", "ATENDENTE")

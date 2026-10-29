@@ -487,6 +487,85 @@ class FluxoCompletoTest {
             banco.getDb().runCommand(new Document("collMod", "auditoria").append("validator", new Document()));
         }
     }
+    @Test
+    void dashboardExigePerfilERenderizaPaginaComApi() throws Exception {
+        for (String recurso : List.of("resumo", "vendas", "status", "produtos")) {
+            String caminho = "/api/dashboard/" + recurso;
+            mvc.perform(get(caminho)).andExpect(status().isUnauthorized());
+            mvc.perform(como(get(caminho), "atendente")).andExpect(status().isForbidden());
+            for (String perfil : List.of("admin", "gerente")) {
+                mvc.perform(como(get(caminho), perfil)).andExpect(status().isOk())
+                        .andExpect(header().string("Cache-Control", "no-store"));
+                mvc.perform(como(post(caminho).with(csrf()), perfil)).andExpect(status().isForbidden());
+            }
+        }
+        for (String perfil : List.of("admin", "gerente")) {
+            mvc.perform(como(get("/admin"), perfil)).andExpect(status().isOk())
+                    .andExpect(content().string(org.hamcrest.Matchers.containsString("/js/dashboard.js")))
+                    .andExpect(content().string(org.hamcrest.Matchers.containsString("/api/dashboard/")));
+        }
+        mvc.perform(como(get("/admin"), "atendente")).andExpect(status().isForbidden());
+        mvc.perform(como(get("/"), "atendente"))
+                .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("href=\"/admin\""))));
+    }
+
+    @Test
+    void dashboardConsultaVendaRealComDescontoEAtualizaAposFinalizacao() throws Exception {
+        String pedido = criarPedido();
+        mvc.perform(como(get("/api/dashboard/resumo"), "admin"))
+                .andExpect(jsonPath("$.dados.totalVendido").value(0));
+        mvc.perform(como(put("/api/pedidos/" + pedido + "/desconto").with(csrf()).param("percentual", "20"), "gerente"))
+                .andExpect(status().isOk());
+        for (String estado : List.of("EM_PREPARACAO", "PRONTO", "RETIRADO", "FINALIZADO")) {
+            mvc.perform(como(put("/api/pedidos/" + pedido + "/status").with(csrf()).param("status", estado), "gerente"))
+                    .andExpect(status().isOk());
+        }
+        mvc.perform(como(get("/api/dashboard/resumo"), "gerente")).andExpect(status().isOk())
+                .andExpect(jsonPath("$.dados.totalVendido").value(48.08))
+                .andExpect(jsonPath("$.dados.ticketMedio").value(48.08))
+                .andExpect(jsonPath("$.dados.pedidosFinalizados").value(1))
+                .andExpect(jsonPath("$.dados.itensVendidos").value(2));
+        mvc.perform(como(get("/api/dashboard/produtos"), "admin"))
+                .andExpect(jsonPath("$.dados[0].nome").value("Pizza teste"))
+                .andExpect(jsonPath("$.dados[0].quantidade").value(2));
+        mvc.perform(como(get("/api/dashboard/status"), "admin"))
+                .andExpect(jsonPath("$.dados.FINALIZADO").value(1));
+        JsonNode dias = json.readTree(mvc.perform(como(get("/api/dashboard/vendas"), "admin"))
+                .andReturn().getResponse().getContentAsString()).get("dados");
+        assertEquals(48.08, dias.get(dias.size() - 1).get("totalVendido").asDouble());
+        assertEquals(1, banco.getCollection("pedidos").countDocuments());
+    }
+
+    @Test
+    void dashboardFiltraLimitesDeBrasiliaEInformaPedidosAntigos() throws Exception {
+        for (String instante : List.of("2026-10-01T02:59:59Z", "2026-10-01T03:00:00Z",
+                "2026-10-02T02:59:59.999Z", "2026-10-02T03:00:00Z")) {
+            banco.getCollection("pedidos").insertOne(new Document("dataHoraEntrada", java.util.Date.from(java.time.Instant.parse(instante)))
+                    .append("status", "FINALIZADO"));
+        }
+        banco.getCollection("pedidos").insertOne(new Document("status", "RECEBIDO"));
+        for (String recurso : List.of("resumo", "vendas", "status", "produtos")) {
+            mvc.perform(como(get("/api/dashboard/" + recurso).param("dataInicial", "2026-10-01").param("dataFinal", "2026-10-01"), "admin"))
+                    .andExpect(status().isOk()).andExpect(jsonPath("$.pedidosNoPeriodo").value(2))
+                    .andExpect(jsonPath("$.pedidosSemData").value(1))
+                    .andExpect(jsonPath("$.pedidosFinalizadosIncompletos").value(2));
+        }
+        mvc.perform(como(get("/api/dashboard/resumo").param("dataInicial", "2026-10-03").param("dataFinal", "2026-10-04"), "admin"))
+                .andExpect(jsonPath("$.pedidosNoPeriodo").value(0)).andExpect(jsonPath("$.dados.totalVendido").value(0));
+    }
+
+    @Test
+    void dashboardRetornaErroClaroParaDatasInvalidas() throws Exception {
+        for (String recurso : List.of("resumo", "vendas", "status", "produtos")) {
+            for (String data : List.of("2026-02-30", "abc", "2026-12-01")) {
+                mvc.perform(como(get("/api/dashboard/" + recurso).param("dataInicial", data).param("dataFinal", "2026-10-01"), "admin"))
+                        .andExpect(status().isBadRequest()).andExpect(jsonPath("$.mensagem").isNotEmpty());
+            }
+            mvc.perform(como(get("/api/dashboard/" + recurso).param("dataInicial", "2026-10-01"), "admin"))
+                    .andExpect(status().isBadRequest());
+        }
+    }
+
     private MockHttpServletRequestBuilder como(MockHttpServletRequestBuilder request, String usuario) {
         return request.with(user(detalhes.loadUserByUsername(usuario)));
     }

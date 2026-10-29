@@ -1,0 +1,58 @@
+﻿Evidências dos testes do dashboard
+Data: 27/10/2026
+
+Java: 25.0.4; compilação do projeto configurada para Java 21
+MongoDB: processo separado para integração
+Comando Maven: mvn -Dmongodb.integration=true -Dnet.bytebuddy.experimental=true package
+Foi indicado também o cache local já instalado com -Dmaven.repo.local.
+
+-------------------------------------------------------------------------------
+Test set: com.umc.pediupatrao.service.PedidoServiceTest
+-------------------------------------------------------------------------------
+Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.265 s -- in com.umc.pediupatrao.service.PedidoServiceTest
+-------------------------------------------------------------------------------
+Test set: com.umc.pediupatrao.service.DashboardServiceTest
+-------------------------------------------------------------------------------
+Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.247 s -- in com.umc.pediupatrao.service.DashboardServiceTest
+-------------------------------------------------------------------------------
+Test set: com.umc.pediupatrao.FluxoCompletoTest
+-------------------------------------------------------------------------------
+Tests run: 25, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 12.94 s -- in com.umc.pediupatrao.FluxoCompletoTest
+[INFO] Tests run: 55, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
+
+Comando JavaScript: node --test src/test/js/dashboard.test.cjs
+
+✔ carrega quatro endpoints e mostra os valores recebidos e os avisos (47.5614ms)
+✔ envia o mesmo filtro aos quatro endpoints ao atualizar (3.2159ms)
+✔ trata HTTP 401 e esconde os valores anteriores (1.9774ms)
+✔ trata HTTP 403 e esconde os valores anteriores (1.5868ms)
+✔ trata HTTP 400 e esconde os valores anteriores (2.983ms)
+✔ trata HTTP 503 e esconde os valores anteriores (2.4404ms)
+✔ trata falha de conexão (2.5882ms)
+✔ trata tempo limite e permite tentar de novo (3.4698ms)
+✔ mostra período vazio sem deixar ranking da consulta anterior (2.0057ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 161.8541
+
+Consulta HTTP na cópia de teste
+Aplicação: http://127.0.0.1:8089
+MongoDB separado: porta 27029, banco dashboard_visual
+Login de teste: ADMIN
+GET /admin: 200, HTML contém o script dashboard.js e o endereço da API
+GET /api/dashboard/resumo: 200
+GET /api/dashboard/vendas: 200
+GET /api/dashboard/status: 200
+GET /api/dashboard/produtos: 200
+Filtro: dataInicial=2026-10-24&dataFinal=2026-10-27
+Respostas salvas nos quatro arquivos dashboard-*.json desta pasta
+Valores conferidos: 234.08; 4 pedidos finalizados válidos; ticket médio 58.52; 11 itens
+
+A inspeção visual foi interrompida pela ferramenta de controle do computador.
+Não há evidência de validação visual, responsividade real ou vídeo gravado.
